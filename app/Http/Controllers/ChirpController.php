@@ -18,9 +18,12 @@ class ChirpController extends Controller
 	public function index(): Response
 	{
 		return Inertia::render('Chirps/Index', [
-			//
+			//pass chirps from every user to our index page
+			'chirps' => Chirp::with('user:id,name')->latest()->get(),
+
 		]);
 	}
+
 
 	/**
 		* Show the form for creating a new resource.
@@ -64,16 +67,33 @@ class ChirpController extends Controller
 	/**
 		* Update the specified resource in storage.
 		*/
-	public function update(Request $request, Chirp $chirp)
+	public function update(Request $request, Chirp $chirp): RedirectResponse
 	{
-		//
+	
+		$this->authorize('update', $chirp);
+
+		$validated = $request->validate([
+			'message' => 'required|string|max:255'
+		]);
+
+		$chirp->update($validated);
+
+
+		return redirect(route('chirps.index'));
 	}
 
 	/**
 		* Remove the specified resource from storage.
 		*/
-	public function destroy(Chirp $chirp)
+	public function destroy(Chirp $chirp): RedirectResponse
 	{
-		//
+
+		$this->authorize('delete', $chirp);
+
+		$chirp->delete();
+
+		return redirect(route('chirps.index'));
+
 	}
 }
+
